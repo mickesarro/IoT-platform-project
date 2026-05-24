@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: local_mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+
+  thingsboard:
+    image: thingsboard/tb-postgres
+    container_name: local_thingsboard
+    ports:
+      - "8080:8080"
+      - "1884:1883"  # Maps host port 1884 to ThingsBoard's internal 1883 MQTT port
+    environment:
+      TB_QUEUE_TYPE: in-memory
+    restart: always

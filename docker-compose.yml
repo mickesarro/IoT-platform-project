@@ -14,8 +14,11 @@ services:
     image: thingsboard/tb-postgres
     container_name: local_thingsboard
     ports:
-      - "8080:8080"
+      - "8080:9090"
       - "1884:1883"  # Maps host port 1884 to ThingsBoard's internal 1883 MQTT port
     environment:
       TB_QUEUE_TYPE: in-memory
+    volumes:
+      - ~/.mytb-data:/data
+      - ~/.mytb-logs:/var/log/thingsboard
     restart: always

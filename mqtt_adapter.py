@@ -8,13 +8,14 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "sensors/temp"
 FLASK_TELEMETRY_URL = "http://127.0.0.1:5000/api/telemetry"
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
+# V2 API requires 'reason_code' and 'properties'
+def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
         print(f"Connected to Mosquitto broker at {MQTT_BROKER}:{MQTT_PORT}")
         client.subscribe(MQTT_TOPIC)
         print(f"Subscribed to topic: {MQTT_TOPIC}")
     else:
-        print(f"Failed to connect, return code {rc}")
+        print(f"Failed to connect, return code {reason_code}")
 
 def on_message(client, userdata, msg):
     payload = msg.payload.decode('utf-8')
@@ -37,8 +38,8 @@ def on_message(client, userdata, msg):
     except requests.exceptions.ConnectionError:
         print("[MQTT Bridge] Error: Could not connect to Flask API. Is app.py running?")
 
-# Initialize and run the MQTT client
-client = mqtt.Client()
+# Explicitly use Callback API Version 2
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.on_message = on_message
 

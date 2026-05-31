@@ -8,7 +8,6 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "sensors/temp"
 FLASK_TELEMETRY_URL = "http://127.0.0.1:5000/api/telemetry"
 
-# V2 API requires 'reason_code' and 'properties'
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
         print(f"Connected to Mosquitto broker at {MQTT_BROKER}:{MQTT_PORT}")
@@ -22,10 +21,8 @@ def on_message(client, userdata, msg):
     print(f"[MQTT] Received message on {msg.topic}: {payload}")
     
     try:
-        # We expect the payload to be valid JSON, e.g., {"device_id": 1, "value": 25.5}
         data = json.loads(payload)
         
-        # Forward to the Flask API
         response = requests.post(FLASK_TELEMETRY_URL, json=data)
         
         if response.status_code in (200, 201):
@@ -38,16 +35,14 @@ def on_message(client, userdata, msg):
     except requests.exceptions.ConnectionError:
         print("[MQTT Bridge] Error: Could not connect to Flask API. Is app.py running?")
 
-# Explicitly use Callback API Version 2
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.on_message = on_message
 
 try:
-    print("Starting MQTT Adapter...")
+    print("Starting MQTT adapter")
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
-    # Blocking loop to keep the script running and listening
     client.loop_forever()
 except KeyboardInterrupt:
-    print("\nShutting down MQTT Adapter.")
+    print("\nShutting down MQTT adapter")
     client.disconnect()

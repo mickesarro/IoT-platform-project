@@ -5,10 +5,8 @@ import requests
 import aiocoap.resource as resource
 import aiocoap
 
-# Configuration
 FLASK_TELEMETRY_URL = "http://127.0.0.1:5000/api/telemetry"
 
-# Setup basic logging to see aiocoap output
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("coap-server").setLevel(logging.INFO)
 
@@ -22,10 +20,8 @@ class MoistureResource(resource.Resource):
         print(f"[CoAP] Received PUT request on /moisture: {payload_str}")
         
         try:
-            # Parse the incoming JSON
             data = json.loads(payload_str)
             
-            # Forward to Flask in a background thread to prevent blocking the async loop
             response = await asyncio.to_thread(requests.post, FLASK_TELEMETRY_URL, json=data)
             
             if response.status_code in (200, 201):
@@ -43,21 +39,17 @@ class MoistureResource(resource.Resource):
             return aiocoap.Message(code=aiocoap.INTERNAL_SERVER_ERROR, payload=b"Flask API unreachable")
 
 async def main():
-    # Create the CoAP resource tree
     root = resource.Site()
     
-    # Map the endpoint /moisture to our MoistureResource class
     root.add_resource(['moisture'], MoistureResource())
 
-    # Start the CoAP server on default port 5683
-    print("Starting CoAP Adapter on port 5683...")
+    print("Starting CoAP Adapter on port 5683")
     await aiocoap.Context.create_server_context(root)
 
-    # Keep the server running forever
     await asyncio.get_running_loop().create_future()
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nShutting down CoAP Adapter.")
+        print("\nShutting down CoAP adapter")
